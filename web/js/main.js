@@ -36,22 +36,28 @@
                         var above = 60;
                         var coeff = 0;
                         if ((edgeCoeffs.length % 2) != 0) {
-                            ctx.strokeStyle = colorSet[i];
                             coeff = edgeCoeffs[i];
-                            ctx.lineWidth = coeff * width;
-                            ctx.beginPath();
-                            ctx.moveTo(start[0], start[1]);
-                            ctx.lineTo(end[0], end[1]);
-                            ctx.stroke();
+                            ctx.strokeStyle = colorSet[i];
+                            drawLine(ctx, start[0], start[1], end[0], end[1], coeff);
                             i++;
                         }
                         for (; i < edgeCoeffs.length; i++) {
-                            ctx.strokeStyle = colorSet[i];
                             coeff = edgeCoeffs[i];
+                            if (Math.abs(coeff) < visibilityBorder) {
+                                continue;
+                            }
+                            ctx.strokeStyle = colorSet[i];
                             ctx.lineWidth = coeff * width;
                             ctx.beginPath();
                             var control = [0.5*(start[0]+end[0]), 0.5*(start[1]+end[1])-above];
                             ctx.moveTo(start[0], start[1]);
+                            if (coeff < 0) {
+                                if ( ctx.setLineDash !== undefined )   ctx.setLineDash([30,5]);
+                                if ( ctx.mozDash !== undefined )       ctx.mozDash = [30,5];
+                            } else {
+                                if ( ctx.setLineDash !== undefined )   ctx.setLineDash([]);
+                                if ( ctx.mozDash !== undefined )       ctx.mozDash = [];
+                            }
                             ctx.quadraticCurveTo(control[0], control[1], end[0], end[1]);
                             ctx.stroke();
                             above = -above;
@@ -146,17 +152,17 @@ var data = {
         {"name": "node_10"}
     ],
     "edges": [
-        {"src": "node_3", "dest": "node_2", "data": {"coefficients": [0.6, 0.5, 0.9]}},
-        {"src": "node_5", "dest": "node_3", "data": {"coefficients": [0.5, 0.8, 0.3]}},
-        {"src": "node_8", "dest": "node_7", "data": {"coefficients": [0.8, 0.7, 0.5]}},
-        {"src": "node_1", "dest": "node_4", "data": {"coefficients": [0.2, 0.3, 0.1]}},
-        {"src": "node_7", "dest": "node_5", "data": {"coefficients": [0.9, 0.2, 0.5]}},
-        {"src": "node_3", "dest": "node_9", "data": {"coefficients": [0.3, 0.6, 0.7]}},
-        {"src": "node_2", "dest": "node_4", "data": {"coefficients": [0.5, 0.4, 0.2]}},
-        {"src": "node_6", "dest": "node_5", "data": {"coefficients": [0.7, 0.3, 0.3]}},
-        {"src": "node_9", "dest": "node_1", "data": {"coefficients": [0.5, 0.8, 0.7]}},
-        {"src": "node_10", "dest": "node_2", "data": {"coefficients": [0.2, 0.5, 0.6]}},
-        {"src": "node_1", "dest": "node_10", "data": {"coefficients": [0.3, 0.5, 0.5]}}
+        {"src": "node_3", "dest": "node_2", "data": {"coefficients": [-0.6, 0.5, -0.9]}},
+        {"src": "node_5", "dest": "node_3", "data": {"coefficients": [0.5, -0.8, 0.3]}},
+        {"src": "node_8", "dest": "node_7", "data": {"coefficients": [0.8, 0.7, -0.5]}},
+        {"src": "node_1", "dest": "node_4", "data": {"coefficients": [-0.2, 0.3, -0.1]}},
+        {"src": "node_7", "dest": "node_5", "data": {"coefficients": [0.9, -0.2, 0.5]}},
+        {"src": "node_3", "dest": "node_9", "data": {"coefficients": [0.3, -0.6, 0.7]}},
+        {"src": "node_2", "dest": "node_4", "data": {"coefficients": [0.5, -0.4, 0.2]}},
+        {"src": "node_6", "dest": "node_5", "data": {"coefficients": [-0.7, 0.3, 0.3]}},
+        {"src": "node_9", "dest": "node_1", "data": {"coefficients": [0.5, 0.8, -0.7]}},
+        {"src": "node_10", "dest": "node_2", "data": {"coefficients": [0.2, -0.5, -0.6]}},
+        {"src": "node_1", "dest": "node_10", "data": {"coefficients": [-0.3, -0.5, 0.5]}}
     ]
 };
 
@@ -182,6 +188,23 @@ function drawEllipse(ctx, x, y, w, h) {
     ctx.fill();
 }
 
+var width = 10;
+var visibilityBorder = 0.5;
+function drawLine(ctx, x1, y1, x2, y2, coeff) {
+    var absolute = Math.abs(coeff);
+    if (absolute > visibilityBorder) {
+        ctx.lineWidth = absolute * width;
+        ctx.beginPath();
+        if (coeff > 0) {
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+        } else {
+            ctx.dashedLine(x1, y1, x2, y2, [20, 10]);
+        }
+        ctx.stroke();
+    }
+}
+
 function getRandomColor() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
@@ -189,4 +212,43 @@ function getRandomColor() {
         color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
+}
+
+function getColorForCoefficient(coeff) {
+//    var color = "#";
+//    var val = Math.abs(coeff) * 196 + 60;
+//    val = Math.abs(Math.floor(val));
+//    val = val.toString(16);
+//    if (coeff < 0) {
+//        color +=  val +  "0000";
+//    } else {
+//        color +=  "00" + val +  "00";
+//    }
+//    return color;
+    return coeff < 0 ? "red" : "green";
+}
+
+var CP = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+if (CP && CP.lineTo){
+    CP.dashedLine = function(x,y,x2,y2,dashArray){
+        if (!dashArray) dashArray=[10,5];
+        if (dashLength==0) dashLength = 0.001; // Hack for Safari
+        var dashCount = dashArray.length;
+        this.moveTo(x, y);
+        var dx = (x2-x), dy = (y2-y);
+        var slope = dx ? dy/dx : 1e15;
+        var distRemaining = Math.sqrt( dx*dx + dy*dy );
+        var dashIndex=0, draw=true;
+        while (distRemaining>=0.1){
+            var dashLength = dashArray[dashIndex++%dashCount];
+            if (dashLength > distRemaining) dashLength = distRemaining;
+            var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
+            if (dx<0) xStep = -xStep;
+            x += xStep;
+            y += slope*xStep;
+            this[draw ? 'lineTo' : 'moveTo'](x,y);
+            distRemaining -= dashLength;
+            draw = !draw;
+        }
+    };
 }
