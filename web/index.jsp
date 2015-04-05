@@ -10,6 +10,7 @@
   <head>
       <script src="${pageContext.request.contextPath}/js/jquery-1.11.2.min.js">void(0)</script>
       <script src="${pageContext.request.contextPath}/js/arbor.js">void(0);</script>
+      <script src="${pageContext.request.contextPath}/js/data.js">void(0);</script>
       <script src="${pageContext.request.contextPath}/js/main.js">void(0);</script>
     <title>ГРАФомания</title>
   </head>

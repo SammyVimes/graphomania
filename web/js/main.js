@@ -1,6 +1,14 @@
 /**
  * Created by Семён on 02.04.2015.
  */
+
+var renderOptions = {
+
+    renderNodes: "all",
+    renderCoefficients: "all"
+
+};
+
 (function($){
     var Renderer = function(canvas)
     {
@@ -8,7 +16,7 @@
         var ctx = canvas.getContext("2d");
         var particleSystem;
 
-        var colorSet = [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()];
+        var colorSet = ["#72DCF0","#8BEC78","#075A9F","#A7FD2D","#7EB8DC"];
 
         var that = {
             init:function(system){
@@ -27,6 +35,17 @@
                 particleSystem.eachEdge(
                     function(edge, pt1, pt2){
 
+                        var whatToRender = renderOptions.renderNodes;
+                        if (whatToRender != "all") {
+                            var sourceName = edge.source.name;
+                            var destName = edge.target.name;
+                            if (sourceName != whatToRender && destName != whatToRender) {
+                                return;
+                            }
+                        }
+
+
+
                         var edgeCoeffs = edge.data.coefficients;
                         var i = 0;
                         var width = 10;
@@ -36,13 +55,13 @@
                         var above = 60;
                         var coeff = 0;
                         if ((edgeCoeffs.length % 2) != 0) {
-                            coeff = edgeCoeffs[i];
+                            coeff = edgeCoeffs[i].value;
                             ctx.strokeStyle = colorSet[i];
                             drawLine(ctx, start[0], start[1], end[0], end[1], coeff);
                             i++;
                         }
                         for (; i < edgeCoeffs.length; i++) {
-                            coeff = edgeCoeffs[i];
+                            coeff = edgeCoeffs[i].value;
                             if (Math.abs(coeff) < visibilityBorder) {
                                 continue;
                             }
@@ -125,46 +144,79 @@
         sys = arbor.ParticleSystem(1000);
         sys.parameters({gravity:true});
         sys.renderer = Renderer("#viewport");
-
+        renderOptions.redraw = function() {
+            sys.renderer.redraw();
+        };
+        var data = result;
 
         $.each(data.nodes, function(i,node){
             sys.addNode(node.name);
         });
 
+        var coefficientValueability = 30;
         $.each(data.edges, function(i,edge){
-            sys.addEdge(sys.getNode(edge.src),sys.getNode(edge.dest), edge.data);
+            var coeffs = edge.average;
+            var length = 50 + (coeffs * (-coefficientValueability));
+            sys.addEdge(sys.getNode(edge["first_name"]),sys.getNode(edge["second_name"]), {length: length, coefficients: edge.coefficients, people: edge.people});
         });
     })
 
 })(this.jQuery);
 
-var data = {
-    "nodes": [
-        {"name": "node_1"},
-        {"name": "node_2"},
-        {"name": "node_3"},
-        {"name": "node_4"},
-        {"name": "node_5"},
-        {"name": "node_6"},
-        {"name": "node_7"},
-        {"name": "node_8"},
-        {"name": "node_9"},
-        {"name": "node_10"}
-    ],
-    "edges": [
-        {"src": "node_3", "dest": "node_2", "data": {"coefficients": [-0.6, 0.5, -0.9]}},
-        {"src": "node_5", "dest": "node_3", "data": {"coefficients": [0.5, -0.8, 0.3]}},
-        {"src": "node_8", "dest": "node_7", "data": {"coefficients": [0.8, 0.7, -0.5]}},
-        {"src": "node_1", "dest": "node_4", "data": {"coefficients": [-0.2, 0.3, -0.1]}},
-        {"src": "node_7", "dest": "node_5", "data": {"coefficients": [0.9, -0.2, 0.5]}},
-        {"src": "node_3", "dest": "node_9", "data": {"coefficients": [0.3, -0.6, 0.7]}},
-        {"src": "node_2", "dest": "node_4", "data": {"coefficients": [0.5, -0.4, 0.2]}},
-        {"src": "node_6", "dest": "node_5", "data": {"coefficients": [-0.7, 0.3, 0.3]}},
-        {"src": "node_9", "dest": "node_1", "data": {"coefficients": [0.5, 0.8, -0.7]}},
-        {"src": "node_10", "dest": "node_2", "data": {"coefficients": [0.2, -0.5, -0.6]}},
-        {"src": "node_1", "dest": "node_10", "data": {"coefficients": [-0.3, -0.5, 0.5]}}
-    ]
-};
+function getClone(template) {
+    var $clone = template.clone();
+    $clone.removeAttr("id");
+    $clone.removeClass("template");
+    return $clone;
+}
+
+$(function () {
+    var nodes = result.nodes;
+    var template = $("#node-template");
+    var $nodesContainer = $("#nodes");
+
+
+    var $clone = getClone(template);
+    $clone.find(".node-name").text("Все-все-все");
+    $clone.find(".toggle").click(function() {
+        renderAll()
+    });
+    $nodesContainer.append($clone);
+
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        $clone = getClone(template);
+        $clone.find(".toggle").click(function(node) {
+            return function() {
+                selectNode(node.name)
+            };
+        }(node));
+        $clone.find(".node-name").text(node.name);
+        $nodesContainer.append($clone);
+    }
+});
+
+function selectNode(nodeName) {
+    $(".node").each(function(i, el) {
+        var $el = $(el);
+        var name = $el.find(".node-name").text();
+        if (name != nodeName) {
+            $el.find(".toggle").removeClass("active");
+        } else {
+            $el.find(".toggle").addClass("active");
+        }
+    });
+    renderOptions.renderNodes = nodeName;
+    renderOptions.redraw();
+}
+
+function renderAll() {
+    $(".node").each(function(i, el) {
+        $(el).find(".toggle").addClass("active");
+    });
+    renderOptions.renderNodes = "all";
+    renderOptions.redraw();
+}
 
 function drawEllipseByCenter(ctx, cx, cy, w, h) {
     drawEllipse(ctx, cx - w/2.0, cy - h/2.0, w, h);
@@ -252,3 +304,18 @@ if (CP && CP.lineTo){
         }
     };
 }
+
+(function() {
+    $(function() {
+        var canvas = document.getElementById('viewport'),
+            context = canvas.getContext('2d');
+
+        window.addEventListener('resize', resizeCanvas, false);
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth - 50;
+            canvas.height = window.innerHeight - 50;
+        }
+        resizeCanvas();
+    });
+})();

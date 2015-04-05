@@ -1,12 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="/css/bootstrap.css" rel="stylesheet">
     <script src="/js/jquery-1.11.2.min.js">void(0)</script>
     <script src="/js/arbor.js">void(0);</script>
+    <script src="/js/data.js">void(0);</script>
     <script src="/js/main.js">void(0);</script>
     <title>ГРАФомания</title>
 </head>
 <body>
+<style>
+    .template {
+        display: none;
+    }
+    .toggle {
+        transition: all 1s ease;
+        background: red;
+        height: 17px;
+    }
+    .toggle.active {
+        background: green;
+    }
+</style>
+cry some more!
+<div class="row" id="nodes">
+
+</div>
+<div class="template node col-lg-2 col-md-3 col-sm-4" id="node-template">
+    <div class="toggle active col-lg-2 col-md-2 col-sm-2"></div>
+    <div class="node-name col-lg-10 col-md-10 col-sm-10"></div>
+</div>
+
 <canvas id="viewport" width="800" height="600"></canvas>
 </body>
 </html>
