@@ -40,7 +40,8 @@ var colorSet = ["#72DCF0","#8BEC78","#075A9F","#A7FD2D","#7EB8DC"];
                         if (whatToRender != "all") {
                             var sourceName = edge.source.name;
                             var destName = edge.target.name;
-                            if (sourceName != whatToRender && destName != whatToRender) {
+
+                            if (whatToRender.indexOf(sourceName) == -1 && whatToRender.indexOf(destName) == -1) {
                                 return;
                             }
                         }
@@ -213,16 +214,24 @@ $(function () {
 });
 
 function selectNode(nodeName) {
+    if (renderOptions.renderNodes == "all") {
+        renderOptions.renderNodes = [];
+    }
+    var index = renderOptions.renderNodes.indexOf(nodeName);
+    if (index != -1) {
+        renderOptions.renderNodes.splice(index, 1);
+    } else {
+        renderOptions.renderNodes.push(nodeName);
+    }
     $(".node").each(function(i, el) {
         var $el = $(el);
         var name = $el.find(".node-name").text();
-        if (name != nodeName) {
+        if (renderOptions.renderNodes.indexOf(name) == -1) {
             $el.find(".toggle").removeClass("active");
         } else {
             $el.find(".toggle").addClass("active");
         }
     });
-    renderOptions.renderNodes = nodeName;
     renderOptions.redraw();
 }
 
