@@ -5,7 +5,8 @@
 var renderOptions = {
 
     renderNodes: "all",
-    renderCoefficients: "all"
+    renderCoefficients: "all",
+    renderMode: "all"
 
 };
 
@@ -41,9 +42,18 @@ var colorSet = ["#72DCF0","#8BEC78","#075A9F","#A7FD2D","#7EB8DC"];
                             var sourceName = edge.source.name;
                             var destName = edge.target.name;
 
-                            if (whatToRender.indexOf(sourceName) == -1 && whatToRender.indexOf(destName) == -1) {
+                            var i1 = whatToRender.indexOf(sourceName);
+                            var i2 = whatToRender.indexOf(destName);
+                            if (i1 == -1 && i2 == -1) {
                                 return;
                             }
+
+                            if (renderOptions.renderMode == "connected") {
+                                if (i1 == -1 || i2 == -1) {
+                                    return;
+                                }
+                            }
+
                         }
 
 
@@ -211,6 +221,11 @@ $(function () {
         $clone.find(".node-name").text(node.name);
         $nodesContainer.append($clone);
     }
+    $("#only-selected").click(function () {
+        var checked = $(this).prop("checked");
+        renderOptions.renderMode = checked ? "connected" : "all";
+        renderOptions.redraw();
+    });
 });
 
 function selectNode(nodeName) {
