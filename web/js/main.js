@@ -9,14 +9,15 @@ var renderOptions = {
 
 };
 
+
+var colorSet = ["#72DCF0","#8BEC78","#075A9F","#A7FD2D","#7EB8DC"];
+
 (function($){
     var Renderer = function(canvas)
     {
         var canvas = $(canvas).get(0);
         var ctx = canvas.getContext("2d");
         var particleSystem;
-
-        var colorSet = ["#72DCF0","#8BEC78","#075A9F","#A7FD2D","#7EB8DC"];
 
         var that = {
             init:function(system){
@@ -174,9 +175,24 @@ $(function () {
     var nodes = result.nodes;
     var template = $("#node-template");
     var $nodesContainer = $("#nodes");
-
+    var $legendContainer = $("#legend");
 
     var $clone = getClone(template);
+    $clone.find(".node-name").text("Люди");
+    $clone.find(".toggle").css("background-color", colorSet[0]);
+    $legendContainer.append($clone);
+
+    $clone = getClone(template);
+    $clone.find(".node-name").text("Цели");
+    $clone.find(".toggle").css("background-color", colorSet[1]);
+    $legendContainer.append($clone);
+
+    $clone = getClone(template);
+    $clone.find(".node-name").text("Инструменты");
+    $clone.find(".toggle").css("background-color", colorSet[2]);
+    $legendContainer.append($clone);
+
+    $clone = getClone(template);
     $clone.find(".node-name").text("Все-все-все");
     $clone.find(".toggle").click(function() {
         renderAll()
