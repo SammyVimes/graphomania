@@ -91,6 +91,8 @@ var colorSet = ["#72DCF0","#8BEC78","#075A9F","#A7FD2D","#7EB8DC"];
                             }
                             ctx.quadraticCurveTo(control[0], control[1], end[0], end[1]);
                             ctx.stroke();
+                            if ( ctx.setLineDash !== undefined )   ctx.setLineDash([]);
+                            if ( ctx.mozDash !== undefined )       ctx.mozDash = [];
                             above = -above;
                             if (above > 0) { //nth*2 iteration
                                 above *= 2;
